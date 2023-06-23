@@ -1,0 +1,84 @@
+app reflectDaily {
+  wasp: {
+    version: "^0.11.0"
+  },
+  db: {
+    system: PostgreSQL
+  },
+  title: "reflect-daily",
+
+  auth: {
+    userEntity: User,
+    methods: {
+      usernameAndPassword: {},
+    },
+    onAuthFailedRedirectTo: "/login",
+    onAuthSucceededRedirectTo: "/dashboard"
+  },
+
+  client: {
+    rootComponent: import App from "@client/layout/App"
+  },
+
+  dependencies: [
+    ("@chakra-ui/react", "2.7.1"),
+    ("@chakra-ui/icons", "2.0.19"),
+    ("@emotion/react", "11.10.6"),
+    ("@emotion/styled", "11.10.6"),
+    ("react-hook-form", "7.45.0"),
+    ("timeago.js", "4.0.2"),
+    ("@fontsource-variable/inter", "5.0.7"),
+    ("framer-motion", "6.5.1")
+  ]
+}
+
+route RootRoute { path: "/", to: LandingPage }
+page LandingPage {
+  authRequired: false,
+  component: import LandingPage from "@client/LandingPage.tsx"
+}
+
+route DashboardRoute { path: "/dashboard", to: DashboardPage }
+page DashboardPage {
+  authRequired: true,
+  component: import Main from "@client/dashboard/DashboardPage.tsx"
+}
+
+route LoginRoute { path: "/login", to: Login }
+page Login {
+  component: import Login from "@client/auth/LoginPage.tsx"
+}
+
+route SignupRoute { path: "/signup", to: Signup }
+page Signup {
+  component: import Signup from "@client/auth/SignupPage.tsx"
+}
+
+entity User {=psl
+  id                        Int           @id @default(autoincrement())
+  username                  String        @unique
+  password                  String
+  reflections               Reflection[]
+psl=}
+
+entity Reflection {=psl
+  id                        Int           @id @default(autoincrement())
+  createdAt                 DateTime      @default(now())
+  dayRating                 String
+  biggestWin                String
+  badMoment                 String
+  user                      User          @relation(fields: [userId], references: [id])
+  userId                    Int
+psl=}
+
+action createReflection {
+  auth: true,
+  fn: import { createReflection } from "@server/actions.js",
+  entities: [Reflection]
+}
+
+query getReflections {
+  fn: import { getReflections } from "@server/queries.js",
+  entities: [Reflection]
+}
+

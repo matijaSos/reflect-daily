@@ -1,0 +1,17 @@
+# fly.toml app configuration file generated for reflect-daily-server on 2023-08-04T19:04:01+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "reflect-daily-server"
+primary_region = "mia"
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
