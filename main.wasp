@@ -1,6 +1,6 @@
 app reflectDaily {
   wasp: {
-    version: "^0.11.0"
+    version: "^0.11.7"
   },
   db: {
     system: PostgreSQL
@@ -25,7 +25,7 @@ app reflectDaily {
     ("@chakra-ui/icons", "2.0.19"),
     ("@emotion/react", "11.10.6"),
     ("@emotion/styled", "11.10.6"),
-    ("react-hook-form", "7.45.0"),
+    ("react-hook-form", "^7.45.4"),
     ("timeago.js", "4.0.2"),
     ("@fontsource-variable/inter", "5.0.7"),
     ("framer-motion", "6.5.1")
