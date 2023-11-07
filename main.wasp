@@ -7,10 +7,28 @@ app reflectDaily {
   },
   title: "reflect-daily",
 
+  emailSender: {
+    provider: SendGrid
+  },
+
   auth: {
     userEntity: User,
     methods: {
-      usernameAndPassword: {},
+      email: {
+        fromField: {
+          name: "My App",
+          email: "hello@itsme.com"
+        },
+        emailVerification: {
+          clientRoute: EmailVerificationRoute,
+          getEmailContentFn: import { getVerificationEmailContent } from "@server/email.js",
+        },
+        passwordReset: {
+          clientRoute: PasswordResetRoute,
+          getEmailContentFn: import { getPasswordResetEmailContent } from "@server/email.js",
+        },
+        allowUnverifiedLogin: true,
+      },
     },
     onAuthFailedRedirectTo: "/login",
     onAuthSucceededRedirectTo: "/dashboard"
@@ -54,10 +72,24 @@ page Signup {
   component: import Signup from "@client/auth/SignupPage.tsx"
 }
 
+route PasswordResetRoute { path: "/password-reset", to: PasswordReset }
+page PasswordReset {
+  component: import PasswordReset from "@client/auth/PasswordReset.tsx"
+}
+
+route EmailVerificationRoute { path: "/email-verification", to: EmailVerification }
+page EmailVerification {
+  component: import EmailVerification from "@client/auth/EmailVerification.tsx"
+}
+
 entity User {=psl
   id                        Int           @id @default(autoincrement())
-  username                  String        @unique
-  password                  String
+  usernameOld               String?       @unique
+  email                     String?       @unique
+  password                  String?
+  isEmailVerified           Boolean       @default(false)
+  emailVerificationSentAt   DateTime?
+  passwordResetSentAt       DateTime?
   reflections               Reflection[]
 psl=}
 

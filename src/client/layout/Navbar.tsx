@@ -65,7 +65,7 @@ const Navbar = () => {
           {/* User menu */}
           <Flex>
             {user ? (
-              <NavbarMenu username={user.username} />
+              <NavbarMenu username={user.email} />
             ) : (
               <Link to='login'>
                 <Button
