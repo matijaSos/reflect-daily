@@ -16,8 +16,8 @@ app reflectDaily {
     methods: {
       email: {
         fromField: {
-          name: "My App",
-          email: "hello@itsme.com"
+          name: "Reflect Daily",
+          email: "hello@reflectdaily.app"
         },
         emailVerification: {
           clientRoute: EmailVerificationRoute,

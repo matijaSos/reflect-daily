@@ -29,6 +29,7 @@ import {
 } from '@chakra-ui/icons';
 
 import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 import createReflection from '@wasp/actions/createReflection'
 
@@ -128,7 +129,8 @@ const DayRatingStep = ({ value, onChange }: { value: string; onChange: onChangeF
   </Flex>
 )
 
-const DailyWinStep = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+// TODO(matija): get rid of any in register
+const DailyWinStep = ({ value, onChange, register }: { value: string; onChange: (v: string) => void; register: any }) => (
   <Box>
     <Heading size='md' mb={2}>🏆 What was the win of the day?</Heading>
     <Text
@@ -142,8 +144,7 @@ const DailyWinStep = ({ value, onChange }: { value: string; onChange: (v: string
     <Textarea
       mt={5}
       height={'125px'}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      {...register('dailyWin')}
       placeholder='Recall what went well!'
     />
   </Box>
@@ -192,6 +193,12 @@ const SubmitReflectionStep = ({ isBeingSubmitted }: { isBeingSubmitted: boolean 
 )
 
 const MainPage = ({ user }: { user: any }) => {
+  const {
+    register,
+    handleSubmit: handleSubmitRHF,
+    formState: { errors }
+  } = useForm()
+
   const { data: reflections, isLoading, error } = useQuery(getReflections)
 
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -214,7 +221,7 @@ const MainPage = ({ user }: { user: any }) => {
 
   const Steps = [
     <DayRatingStep value={dayRating} onChange={setDayRating} />,
-    <DailyWinStep value={biggestWin} onChange={setBiggestWin} />,
+    <DailyWinStep value={biggestWin} onChange={setBiggestWin} register={register} />,
     <WhatBetterStep value={badMoment} onChange={setBadMoment} />,
     <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
   ] as const
@@ -263,7 +270,7 @@ const MainPage = ({ user }: { user: any }) => {
         <ModalOverlay />
         <ModalContent>
           <ModalBody>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmitRHF(data => console.log(data))}>
               <Flex direction='column' height='450px' justify='space-between' py={5} px={{ lg: 4 }}>
 
                 {Steps[activeQuestionIdx]}
