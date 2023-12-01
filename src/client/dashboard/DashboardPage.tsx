@@ -28,8 +28,8 @@ import {
   CheckCircleIcon
 } from '@chakra-ui/icons';
 
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import React, { useState, forwardRef } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 
 import createReflection from '@wasp/actions/createReflection'
 
@@ -130,7 +130,7 @@ const DayRatingStep = ({ value, onChange }: { value: string; onChange: onChangeF
 )
 
 // TODO(matija): get rid of any in register
-const DailyWinStep = ({ value, onChange, register }: { value: string; onChange: (v: string) => void; register: any }) => (
+const DailyWinStep = ({ register }: { register: any }) => (
   <Box>
     <Heading size='md' mb={2}>🏆 What was the win of the day?</Heading>
     <Text
@@ -150,7 +150,7 @@ const DailyWinStep = ({ value, onChange, register }: { value: string; onChange: 
   </Box>
 )
 
-const WhatBetterStep = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+const WhatBetterStep = ({ register }: { register: any }) => (
   <Box>
     <Heading size='md' mb={2}>🌩️ What could have gone better?</Heading>
     <Text
@@ -171,8 +171,7 @@ const WhatBetterStep = ({ value, onChange }: { value: string; onChange: (v: stri
     <Textarea
       mt={5}
       height={'125px'}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      {...register('whatBetter')}
       placeholder='Recall one moment and "do it over" in your mind.'
     />
   </Box>
@@ -195,6 +194,7 @@ const SubmitReflectionStep = ({ isBeingSubmitted }: { isBeingSubmitted: boolean 
 const MainPage = ({ user }: { user: any }) => {
   const {
     register,
+    control,
     handleSubmit: handleSubmitRHF,
     formState: { errors }
   } = useForm()
@@ -220,9 +220,15 @@ const MainPage = ({ user }: { user: any }) => {
   }
 
   const Steps = [
-    <DayRatingStep value={dayRating} onChange={setDayRating} />,
-    <DailyWinStep value={biggestWin} onChange={setBiggestWin} register={register} />,
-    <WhatBetterStep value={badMoment} onChange={setBadMoment} />,
+    <Controller
+      name='dayRating'
+      control={control}
+      render={({ field }) => (
+        <DayRatingStep {...field} value={dayRating} onChange={setDayRating} />
+      )}
+    />,
+    <DailyWinStep register={register} />,
+    <WhatBetterStep register={register} />,
     <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
   ] as const
 
