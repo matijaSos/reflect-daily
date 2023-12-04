@@ -29,7 +29,7 @@ import {
 } from '@chakra-ui/icons';
 
 import React, { useState, forwardRef } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useController, Control } from 'react-hook-form'
 
 import createReflection from '@wasp/actions/createReflection'
 
@@ -83,7 +83,19 @@ const RadioCard = (props: { value: string; subtitle: string & UseRadioProps }) =
   )
 }
 
-const DayRatingRadioGroup = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => {
+const DayRatingRadioGroup = ({ value, onChange, control }:
+  {
+    value: string;
+    onChange: (v: string) => void;
+    control: Control<ReflectionSurveyValues, any>
+  }
+) => {
+
+  const { field } = useController({
+    name: 'dayRating',
+    control,
+    defaultValue: '1'
+  })
 
   const options = [
     { value: '-2', subtitle: 'Everything went poorly.' },
@@ -93,7 +105,8 @@ const DayRatingRadioGroup = ({ value, onChange }: { value: string; onChange: (v:
   ]
 
   const { getRootProps, getRadioProps } = useRadioGroup({
-    name: 'dailyRating',
+    ...field,
+    // TOOD(matija): get rid of this
     defaultValue: value,
     onChange: onChange,
   })
@@ -116,15 +129,33 @@ const DayRatingRadioGroup = ({ value, onChange }: { value: string; onChange: (v:
   )
 }
 
+// TODO(matija): I can delete this, I think?
 interface onChangeFn {
   (value: string): void;
 }
 
-const DayRatingStep = ({ value, onChange }: { value: string; onChange: onChangeFn }) => (
+// TODO(matija): remove this, it was for testing only.
+//const DayRatingStep = ({ value, onChange }: { value: string; onChange: onChangeFn }) => (
+const DayRatingStepTest = forwardRef<HTMLInputElement, { name: string }>(
+  ({ ...props }, ref) => (
+    <>
+      <span>hello {props.name}</span>
+      <input ref={ref}></input>
+    </>
+  )
+)
+
+interface ReflectionSurveyValues {
+  dayRating: string,
+  dailyWin: string,
+  whatBetter: string
+}
+
+const DayRatingStep = ({ value, onChange, control }) => (
   <Flex direction='column'>
     <Heading size='md' mb={2}>Rate your day from -2 to 2:</Heading>
     <Box alignSelf='center' mt={5} w={'full'}>
-      <DayRatingRadioGroup onChange={onChange} value={value} />
+      <DayRatingRadioGroup control={control} onChange={onChange} value={value} />
     </Box>
   </Flex>
 )
@@ -197,7 +228,7 @@ const MainPage = ({ user }: { user: any }) => {
     control,
     handleSubmit: handleSubmitRHF,
     formState: { errors }
-  } = useForm()
+  } = useForm<ReflectionSurveyValues>()
 
   const { data: reflections, isLoading, error } = useQuery(getReflections)
 
@@ -220,13 +251,7 @@ const MainPage = ({ user }: { user: any }) => {
   }
 
   const Steps = [
-    <Controller
-      name='dayRating'
-      control={control}
-      render={({ field }) => (
-        <DayRatingStep {...field} value={dayRating} onChange={setDayRating} />
-      )}
-    />,
+    <DayRatingStep control={control} value={dayRating} onChange={setDayRating} />,
     <DailyWinStep register={register} />,
     <WhatBetterStep register={register} />,
     <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
