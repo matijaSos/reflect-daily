@@ -52,7 +52,6 @@ const LandingPage = () => {
           <Box mt={8}>
             <Link to='dashboard'>
               <Button
-                as='a'
                 h='4rem'
                 px='40px'
                 fontSize='1.2rem'

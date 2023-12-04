@@ -65,11 +65,12 @@ const Navbar = () => {
           {/* User menu */}
           <Flex>
             {user ? (
-              <NavbarMenu username={user.email} />
+              // TODO(matija): email is by type string || null (b/c of our data model I guess), although in practice
+              // it will never be. Can we fix that?
+              <NavbarMenu username={user.email as string} />
             ) : (
               <Link to='login'>
                 <Button
-                  as='a'
                   variant='brand'
                   leftIcon={<UnlockIcon />}
                 >

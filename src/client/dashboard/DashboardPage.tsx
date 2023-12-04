@@ -40,53 +40,7 @@ import ReflectionList from './ReflectionList'
 
 type RadioCardProps = { value: string; subtitle: string & UseRadioProps }
 
-const RadioCard = forwardRef<HTMLInputElement, RadioCardProps>((props, ref) => {
-  const { state, getInputProps, getRadioProps } = useRadio(props)
-
-  const inputProps = getInputProps({ ref })
-  const checkboxProps = getRadioProps()
-
-  return (
-    <Box as='label' w={'full'}>
-      <input {...inputProps} />
-      <Flex
-        justify='space-between'
-        align='center'
-        {...checkboxProps}
-        //w='325px'
-        cursor='pointer'
-        borderWidth='1px'
-        borderRadius='md'
-        boxShadow='md'
-        _checked={{
-          bg: 'primary.600',
-          color: 'white',
-          borderColor: 'primary.600',
-        }}
-        _focus={{
-          //boxShadow: 'outline',
-        }}
-        px={5}
-        py={2}
-      >
-        <Box>
-          <Text fontSize='md' fontWeight='medium'>{props.value}</Text>
-          <Text
-            color={state.isChecked ? 'white' : 'gray.700'}
-            fontSize='sm'
-            fontWeight={'normal'}
-          >
-            {props.subtitle}
-          </Text>
-        </Box>
-        {state.isChecked && <CheckCircleIcon />}
-      </Flex>
-    </Box>
-  )
-
-})
-
-const RadioCardOld = (props: { value: string; subtitle: string & UseRadioProps }) => {
+const RadioCard = (props: RadioCardProps, ) => {
   const { state, getInputProps, getRadioProps } = useRadio(props)
 
   const inputProps = getInputProps()
@@ -131,14 +85,7 @@ const RadioCardOld = (props: { value: string; subtitle: string & UseRadioProps }
   )
 }
 
-const DayRatingRadioGroup = ({ value, onChange, control }:
-  {
-    value: string;
-    onChange: (v: string) => void;
-    control: Control<ReflectionSurveyValues, any>
-  }
-) => {
-
+const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyValues>}) => {
   const { field } = useController({
     name: 'dayRating',
     control,
@@ -163,10 +110,11 @@ const DayRatingRadioGroup = ({ value, onChange, control }:
 
   return (
     <VStack {...group}>
-      {options.map((option) => {
+      {options.map((option, idx) => {
         const radio = getRadioProps({ value: option.value })
         return (
           <RadioCard
+            key={idx}
             value={option.value}
             subtitle={option.subtitle}
             {...radio}
@@ -182,28 +130,17 @@ interface onChangeFn {
   (value: string): void;
 }
 
-// TODO(matija): remove this, it was for testing only.
-//const DayRatingStep = ({ value, onChange }: { value: string; onChange: onChangeFn }) => (
-const DayRatingStepTest = forwardRef<HTMLInputElement, { name: string }>(
-  ({ ...props }, ref) => (
-    <>
-      <span>hello {props.name}</span>
-      <input ref={ref}></input>
-    </>
-  )
-)
-
 interface ReflectionSurveyValues {
   dayRating: string,
   dailyWin: string,
   whatBetter: string
 }
 
-const DayRatingStep = ({ value, onChange, control }) => (
+const DayRatingStep = ({ control }: { control: Control<ReflectionSurveyValues> }) => (
   <Flex direction='column'>
     <Heading size='md' mb={2}>Rate your day from -2 to 2:</Heading>
     <Box alignSelf='center' mt={5} w={'full'}>
-      <DayRatingRadioGroup control={control} onChange={onChange} value={value} />
+      <DayRatingRadioGroup control={control} />
     </Box>
   </Flex>
 )
@@ -299,7 +236,7 @@ const MainPage = ({ user }: { user: any }) => {
   }
 
   const Steps = [
-    <DayRatingStep control={control} value={dayRating} onChange={setDayRating} />,
+    <DayRatingStep control={control} />,
     <DailyWinStep register={register} />,
     <WhatBetterStep register={register} />,
     <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
