@@ -29,7 +29,7 @@ import {
 } from '@chakra-ui/icons';
 
 import React, { useState, forwardRef } from 'react'
-import { useForm, useController, Control } from 'react-hook-form'
+import { useForm, useController, Control, SubmitHandler } from 'react-hook-form'
 
 import createReflection from '@wasp/actions/createReflection'
 
@@ -99,12 +99,7 @@ const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyVal
     { value: '2', subtitle: 'I cherished every second.' },
   ]
 
-  const { getRootProps, getRadioProps } = useRadioGroup({
-    ...field,
-    // TODO(matija): get rid of this
-    //defaultValue: value,
-    //onChange: onChange,
-  })
+  const { getRootProps, getRadioProps } = useRadioGroup({ ...field })
 
   const group = getRootProps()
 
@@ -123,11 +118,6 @@ const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyVal
       })}
     </VStack>
   )
-}
-
-// TODO(matija): I can delete this, I think?
-interface onChangeFn {
-  (value: string): void;
 }
 
 interface ReflectionSurveyValues {
@@ -212,8 +202,29 @@ const MainPage = ({ user }: { user: any }) => {
     register,
     control,
     handleSubmit: handleSubmitRHF,
+    reset,
     formState: { errors }
   } = useForm<ReflectionSurveyValues>()
+
+  const onFormValidated: SubmitHandler<ReflectionSurveyValues> = async ({ dayRating, dailyWin, whatBetter }) => {
+    console.log('this is validated data: ', dayRating, dailyWin, whatBetter)
+    setIsReflectionBeingSubmitted(true)
+
+    try {
+      // TODO(matija): standardize these names
+      await createReflection({ dayRating, biggestWin: dailyWin, badMoment: whatBetter })
+      onClose()
+    } catch (err: any) {
+      window.alert("Error: " + err.message)
+    } finally {
+      // TODO(matija): RHF docs recommended to call reset() within useEffect in some cases, e.g. controlled components, not sure
+      // if that applies here?
+      reset()
+      setActiveQuestionIdx(0)
+
+      setIsReflectionBeingSubmitted(false)
+    }
+  }
 
   const { data: reflections, isLoading, error } = useQuery(getReflections)
 
@@ -286,7 +297,7 @@ const MainPage = ({ user }: { user: any }) => {
         <ModalOverlay />
         <ModalContent>
           <ModalBody>
-            <form onSubmit={handleSubmitRHF(data => console.log(data))}>
+            <form onSubmit={handleSubmitRHF(onFormValidated)}>
               <Flex direction='column' height='450px' justify='space-between' py={5} px={{ lg: 4 }}>
 
                 {Steps[activeQuestionIdx]}
