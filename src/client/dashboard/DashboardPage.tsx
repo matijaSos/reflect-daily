@@ -38,7 +38,55 @@ import { useQuery } from "@wasp/queries"
 
 import ReflectionList from './ReflectionList'
 
-const RadioCard = (props: { value: string; subtitle: string & UseRadioProps }) => {
+type RadioCardProps = { value: string; subtitle: string & UseRadioProps }
+
+const RadioCard = forwardRef<HTMLInputElement, RadioCardProps>((props, ref) => {
+  const { state, getInputProps, getRadioProps } = useRadio(props)
+
+  const inputProps = getInputProps({ ref })
+  const checkboxProps = getRadioProps()
+
+  return (
+    <Box as='label' w={'full'}>
+      <input {...inputProps} />
+      <Flex
+        justify='space-between'
+        align='center'
+        {...checkboxProps}
+        //w='325px'
+        cursor='pointer'
+        borderWidth='1px'
+        borderRadius='md'
+        boxShadow='md'
+        _checked={{
+          bg: 'primary.600',
+          color: 'white',
+          borderColor: 'primary.600',
+        }}
+        _focus={{
+          //boxShadow: 'outline',
+        }}
+        px={5}
+        py={2}
+      >
+        <Box>
+          <Text fontSize='md' fontWeight='medium'>{props.value}</Text>
+          <Text
+            color={state.isChecked ? 'white' : 'gray.700'}
+            fontSize='sm'
+            fontWeight={'normal'}
+          >
+            {props.subtitle}
+          </Text>
+        </Box>
+        {state.isChecked && <CheckCircleIcon />}
+      </Flex>
+    </Box>
+  )
+
+})
+
+const RadioCardOld = (props: { value: string; subtitle: string & UseRadioProps }) => {
   const { state, getInputProps, getRadioProps } = useRadio(props)
 
   const inputProps = getInputProps()
@@ -106,9 +154,9 @@ const DayRatingRadioGroup = ({ value, onChange, control }:
 
   const { getRootProps, getRadioProps } = useRadioGroup({
     ...field,
-    // TOOD(matija): get rid of this
-    defaultValue: value,
-    onChange: onChange,
+    // TODO(matija): get rid of this
+    //defaultValue: value,
+    //onChange: onChange,
   })
 
   const group = getRootProps()
