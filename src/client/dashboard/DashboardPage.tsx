@@ -40,7 +40,7 @@ import ReflectionList from './ReflectionList'
 
 type RadioCardProps = { value: string; subtitle: string & UseRadioProps }
 
-const RadioCard = (props: RadioCardProps, ) => {
+const RadioCard = (props: RadioCardProps,) => {
   const { state, getInputProps, getRadioProps } = useRadio(props)
 
   const inputProps = getInputProps()
@@ -85,12 +85,15 @@ const RadioCard = (props: RadioCardProps, ) => {
   )
 }
 
-const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyValues>}) => {
+const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyValues> }) => {
   const { field } = useController({
     name: 'dayRating',
     control,
     defaultValue: '1'
   })
+
+  const { getRootProps, getRadioProps } = useRadioGroup({ ...field })
+  const group = getRootProps()
 
   const options = [
     { value: '-2', subtitle: 'Everything went poorly.' },
@@ -98,10 +101,6 @@ const DayRatingRadioGroup = ({ control }: { control: Control<ReflectionSurveyVal
     { value: '1', subtitle: 'A good day, almost perfect.' },
     { value: '2', subtitle: 'I cherished every second.' },
   ]
-
-  const { getRootProps, getRadioProps } = useRadioGroup({ ...field })
-
-  const group = getRootProps()
 
   return (
     <VStack {...group}>
@@ -150,7 +149,7 @@ const DailyWinStep = ({ register }: { register: any }) => (
     <Textarea
       mt={5}
       height={'125px'}
-      {...register('dailyWin')}
+      {...register('dailyWin', { required: true, minLength: 5 })}
       placeholder='Recall what went well!'
     />
   </Box>
@@ -177,7 +176,7 @@ const WhatBetterStep = ({ register }: { register: any }) => (
     <Textarea
       mt={5}
       height={'125px'}
-      {...register('whatBetter')}
+      {...register('whatBetter', { required: true, minLength: { value: 5, message: 'cmon, write something!' } })}
       placeholder='Recall one moment and "do it over" in your mind.'
     />
   </Box>
@@ -207,7 +206,6 @@ const MainPage = ({ user }: { user: any }) => {
   } = useForm<ReflectionSurveyValues>()
 
   const onFormValidated: SubmitHandler<ReflectionSurveyValues> = async ({ dayRating, dailyWin, whatBetter }) => {
-    console.log('this is validated data: ', dayRating, dailyWin, whatBetter)
     setIsReflectionBeingSubmitted(true)
 
     try {
@@ -253,6 +251,7 @@ const MainPage = ({ user }: { user: any }) => {
     <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
   ] as const
 
+  // TODO(matija): remove, not used anymore.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsReflectionBeingSubmitted(true)
@@ -275,6 +274,9 @@ const MainPage = ({ user }: { user: any }) => {
   const goForward = () => {
     setActiveQuestionIdx(Math.min(Steps.length - 1, activeQuestionIdx + 1))
   }
+
+  console.log('printing errors')
+  console.log(errors)
 
   return (
     <Box px={10} py={5}>
@@ -300,7 +302,23 @@ const MainPage = ({ user }: { user: any }) => {
             <form onSubmit={handleSubmitRHF(onFormValidated)}>
               <Flex direction='column' height='450px' justify='space-between' py={5} px={{ lg: 4 }}>
 
-                {Steps[activeQuestionIdx]}
+                {/* {Steps[activeQuestionIdx]} */}
+
+                {/* TODO: abstract this nicely. */}
+                <Box display={ activeQuestionIdx === 0 ? 'block' : 'none'}>
+                  <DayRatingStep control={control} />
+                </Box>
+                <Box display={ activeQuestionIdx === 1 ? 'block' : 'none'}>
+                  <DailyWinStep register={register} />
+                </Box>
+                <Box display={ activeQuestionIdx === 2 ? 'block' : 'none'}>
+                  <WhatBetterStep register={register} />
+                </Box>
+                <Box h='full' display={ activeQuestionIdx === 3 ? 'block' : 'none'}>
+                  <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
+                </Box>
+
+                {errors.dailyWin && <span>There was an error!: {errors.dailyWin.message}</span>}
 
                 {/* Back/Forward navbar */}
                 <Flex justify='space-between' mt={10}>
