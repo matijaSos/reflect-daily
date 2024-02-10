@@ -202,7 +202,8 @@ const MainPage = ({ user }: { user: any }) => {
     control,
     handleSubmit: handleSubmitRHF,
     reset,
-    formState: { errors }
+    trigger,
+    formState: { errors, isValid }
   } = useForm<ReflectionSurveyValues>()
 
   const onFormValidated: SubmitHandler<ReflectionSurveyValues> = async ({ dayRating, dailyWin, whatBetter }) => {
@@ -228,51 +229,41 @@ const MainPage = ({ user }: { user: any }) => {
 
   const { isOpen, onOpen, onClose } = useDisclosure()
 
-  const [dayRating, setDayRating] = useState('1')
-  const [biggestWin, setBiggestWin] = useState('')
-  const [badMoment, setBadMoment] = useState('')
-
   const [isReflectionBeingSubmitted, setIsReflectionBeingSubmitted] = useState(false)
 
   // TODO(matija): rename to activeStepIdx (and everything else accordingly).
   const [activeQuestionIdx, setActiveQuestionIdx] = useState(0)
 
-  const resetForm = () => {
-    setDayRating('1')
-    setBiggestWin('')
-    setBadMoment('')
-    setActiveQuestionIdx(0)
-  }
 
-  const Steps = [
-    <DayRatingStep control={control} />,
-    <DailyWinStep register={register} />,
-    <WhatBetterStep register={register} />,
-    <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
-  ] as const
-
-  // TODO(matija): remove, not used anymore.
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsReflectionBeingSubmitted(true)
-
-    try {
-      await createReflection({ dayRating, biggestWin, badMoment })
-      onClose()
-    } catch (err: any) {
-      window.alert("Error: " + err.message)
-    } finally {
-      resetForm()
-      setIsReflectionBeingSubmitted(false)
-    }
-  }
+  // TODO(matija): un-hardcode these validatio ids, so I don't
+  // have duplication in the code.
+  const Steps = [{
+    component: <DayRatingStep control={control} />,
+    validationId: 'dayRating'
+  }, {
+    component: <DailyWinStep register={register} />,
+    validationId: 'dailyWin'
+  }, {
+    component: <WhatBetterStep register={register} />,
+    validationId: 'whatBetter'
+  }, {
+    component: <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
+  }]
 
   const goBack = () => {
     setActiveQuestionIdx(Math.max(0, activeQuestionIdx - 1))
   }
 
-  const goForward = () => {
-    setActiveQuestionIdx(Math.min(Steps.length - 1, activeQuestionIdx + 1))
+  const goForward = async () => {
+    let isStepValid = true
+
+    if (Steps[activeQuestionIdx].validationId) {
+      isStepValid = await trigger(Steps[activeQuestionIdx].validationId as keyof ReflectionSurveyValues)
+    }
+
+    if (isStepValid) {
+      setActiveQuestionIdx(Math.min(Steps.length - 1, activeQuestionIdx + 1))
+    }
   }
 
   console.log('printing errors')
@@ -305,16 +296,16 @@ const MainPage = ({ user }: { user: any }) => {
                 {/* {Steps[activeQuestionIdx]} */}
 
                 {/* TODO: abstract this nicely. */}
-                <Box display={ activeQuestionIdx === 0 ? 'block' : 'none'}>
+                <Box display={activeQuestionIdx === 0 ? 'block' : 'none'}>
                   <DayRatingStep control={control} />
                 </Box>
-                <Box display={ activeQuestionIdx === 1 ? 'block' : 'none'}>
+                <Box display={activeQuestionIdx === 1 ? 'block' : 'none'}>
                   <DailyWinStep register={register} />
                 </Box>
-                <Box display={ activeQuestionIdx === 2 ? 'block' : 'none'}>
+                <Box display={activeQuestionIdx === 2 ? 'block' : 'none'}>
                   <WhatBetterStep register={register} />
                 </Box>
-                <Box h='full' display={ activeQuestionIdx === 3 ? 'block' : 'none'}>
+                <Box h='full' display={activeQuestionIdx === 3 ? 'block' : 'none'}>
                   <SubmitReflectionStep isBeingSubmitted={isReflectionBeingSubmitted} />
                 </Box>
 
